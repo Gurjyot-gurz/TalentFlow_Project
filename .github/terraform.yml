@@ -1,0 +1,58 @@
+name: TalentFlow Terraform
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_WORKING_DIR: backend/terraform/environments/dev
+
+jobs:
+  terraform:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::318003418338:role/TalentFlow-GitHubActions-Role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          TF_VAR_db_host: ${{ secrets.TF_DB_HOST }}
+          TF_VAR_db_port: ${{ secrets.TF_DB_PORT }}
+          TF_VAR_db_user: ${{ secrets.TF_DB_USER }}
+          TF_VAR_db_password: ${{ secrets.TF_DB_PASSWORD }}
+          TF_VAR_db_name: ${{ secrets.TF_DB_NAME }}
+          TF_VAR_jwt_secret: ${{ secrets.TF_JWT_SECRET }}
+          TF_VAR_s3_bucket_name: ${{ secrets.TF_S3_BUCKET_NAME }}
+        run: terraform plan -input=false

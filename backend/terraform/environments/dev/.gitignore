@@ -1,0 +1,23 @@
+# Terraform working directory
+.terraform/
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+
+# Terraform variable files
+*.tfvars
+
+# Terraform plans
+*.tfplan
+
+# Local backup files
+*.backup
+
+# Temporary test files
+dlq-test.txt
+lambda-response.json
+lambda-test-event.json
+lambda-test-response.json
+lambda-test.json
+request.json
